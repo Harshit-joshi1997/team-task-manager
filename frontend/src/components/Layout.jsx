@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/useAuthStore';
 import './Layout.css';
 
 const NAV_ITEMS = [
@@ -26,8 +28,25 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const initials = user?.name
+    ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
+
+  function handleLogout() {
+    logout();
+    navigate('/login');
+  }
+
   return (
     <div className="layout">
+      {/* Backdrop renders first so it's below the sidebar/dropdown in the stacking context */}
+      {menuOpen && (
+        <div className="sidebar__backdrop" onClick={() => setMenuOpen(false)} />
+      )}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="sidebar__logo">
@@ -61,16 +80,53 @@ export default function Layout() {
           ))}
         </nav>
 
+        {/* User footer with logout dropdown */}
         <div className="sidebar__footer">
-          <div className="sidebar__avatar">
-            <span>H</span>
-          </div>
-          <div className="sidebar__user-info">
-            <p className="sidebar__user-name">Harshit</p>
-            <p className="sidebar__user-role">Admin</p>
-          </div>
+          <button
+            id="user-menu-btn"
+            className="sidebar__user-btn"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="User menu"
+          >
+            <div className="sidebar__avatar">{initials}</div>
+            <div className="sidebar__user-info">
+              <p className="sidebar__user-name">{user?.name || 'User'}</p>
+              <p className="sidebar__user-role">{user?.role || 'Member'}</p>
+            </div>
+            <svg
+              className={`sidebar__chevron${menuOpen ? ' sidebar__chevron--open' : ''}`}
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M18 15l-6-6-6 6" />
+            </svg>
+          </button>
+
+          {menuOpen && (
+            <div className="sidebar__dropdown">
+              <div className="sidebar__dropdown-info">
+                <p className="sidebar__dropdown-name">{user?.name}</p>
+                <p className="sidebar__dropdown-email">{user?.email}</p>
+              </div>
+              <div className="sidebar__dropdown-divider" />
+              <button
+                id="logout-btn"
+                className="sidebar__dropdown-item sidebar__dropdown-item--danger"
+                onClick={handleLogout}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </aside>
+
+
 
       <main className="layout__content">
         <Outlet />
