@@ -1,0 +1,55 @@
+.modal--task { max-width: 540px; }
+
+/* ── Form row (2 columns) ── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+/* ── Status selector ── */
+.status-selector {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.status-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.status-btn:hover {
+  border-color: var(--s-color);
+  color: var(--s-color);
+}
+
+.status-btn--active {
+  background: color-mix(in srgb, var(--s-color) 15%, transparent);
+  border-color: var(--s-color);
+  color: var(--s-color);
+}
+
+.status-btn__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--s-color);
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .form-row { grid-template-columns: 1fr; }
+  .status-selector { flex-direction: column; }
+}
