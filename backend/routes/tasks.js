@@ -60,12 +60,19 @@ router.post('/tasks', auth, isAdmin, async (req, res) => {
       project: projectId,
       assignedTo: assignedTo || null,
       createdBy: userId,
+    res.status(201).json({
+      id: task._id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: task.dueDate,
+      project: task.project,
+      assignedTo: task.assignedTo,
+      createdAt: task.createdAt
     });
-    
-    res.status(201).json(task);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create task' });
+    console.error('Task Creation Error:', err);
+    res.status(500).json({ error: 'Failed to create task', details: err.message });
   }
 });
 
@@ -100,10 +107,19 @@ router.put('/tasks/:id', auth, async (req, res) => {
     }
 
     await task.save();
-    res.json(task);
+    res.json({
+      id: task._id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: task.dueDate,
+      project: task.project,
+      assignedTo: task.assignedTo,
+      createdAt: task.createdAt
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update task' });
+    console.error('Task Update Error:', err);
+    res.status(500).json({ error: 'Failed to update task', details: err.message });
   }
 });
 
