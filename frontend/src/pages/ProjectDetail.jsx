@@ -1,30 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskModal from '../components/TaskModal';
+import api from '../api/axios';
 import './ProjectDetail.css';
-
-/* ── Mock Data ── */
-const MOCK_PROJECT = {
-  id: '1',
-  name: 'Backend API',
-  description: 'Node/Express REST API with authentication, Prisma ORM, and role-based access control.',
-  members: [
-    { id: 'u1', name: 'Harshit Joshi', role: 'ADMIN',  avatar: 'H' },
-    { id: 'u2', name: 'Priya Sharma',  role: 'MEMBER', avatar: 'P' },
-    { id: 'u3', name: 'Raj Verma',     role: 'MEMBER', avatar: 'R' },
-    { id: 'u4', name: 'Meera Singh',   role: 'MEMBER', avatar: 'M' },
-  ],
-  tasks: [
-    { id: 't1', title: 'Set up Express server',        description: 'Initialize project, install deps.', status: 'DONE',        dueDate: '2026-04-20', assignedTo: 'u1', createdById: 'u1' },
-    { id: 't2', title: 'Implement auth middleware',    description: 'JWT verify, attach req.user.',      status: 'DONE',        dueDate: '2026-04-22', assignedTo: 'u1', createdById: 'u1' },
-    { id: 't3', title: 'Prisma schema design',         description: 'User, Project, Task models.',       status: 'DONE',        dueDate: '2026-04-25', assignedTo: 'u2', createdById: 'u1' },
-    { id: 't4', title: 'User registration endpoint',   description: 'POST /api/register with bcrypt.',   status: 'IN_PROGRESS', dueDate: '2026-05-05', assignedTo: 'u2', createdById: 'u1' },
-    { id: 't5', title: 'Projects CRUD routes',         description: 'Create, list, update, delete.',     status: 'IN_PROGRESS', dueDate: '2026-05-07', assignedTo: 'u3', createdById: 'u1' },
-    { id: 't6', title: 'Task assignment feature',      description: 'Assign tasks to project members.',  status: 'TODO',        dueDate: '2026-05-10', assignedTo: 'u3', createdById: 'u1' },
-    { id: 't7', title: 'Role-based access control',    description: 'requireRole middleware.',            status: 'TODO',        dueDate: '2026-05-12', assignedTo: 'u4', createdById: 'u1' },
-    { id: 't8', title: 'Write API tests',              description: 'Jest + Supertest integration tests.',status: 'TODO',        dueDate: '2026-05-15', assignedTo: null, createdById: 'u1' },
-  ],
-};
 
 const COLUMNS = [
   { key: 'TODO',        label: 'To Do',       color: 'var(--teal)',   dot: 'var(--teal)' },
@@ -72,23 +50,48 @@ function TaskCard({ task, member, onClick }) {
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const project = MOCK_PROJECT; // In real app: fetch by id
-
-  const [tasks, setTasks] = useState(project.tasks);
+  
+  const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  useEffect(() => {
+    async function fetchProject() {
+      try {
+        const { data } = await api.get(`/projects/${id}`);
+        setProject(data);
+        setTasks(data.tasks);
+      } catch (err) {
+        console.error('Failed to load project', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProject();
+  }, [id]);
 
   function openCreate() { setEditingTask(null); setModalOpen(true); }
   function openEdit(task) { setEditingTask(task); setModalOpen(true); }
 
-  function handleSave(taskData) {
-    if (editingTask) {
-      setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? { ...t, ...taskData } : t)));
-    } else {
-      setTasks((prev) => [...prev, { id: `t${Date.now()}`, ...taskData, createdById: 'u1' }]);
+  async function handleSave(taskData) {
+    try {
+      if (editingTask) {
+        const { data } = await api.put(`/tasks/${editingTask.id}`, taskData);
+        setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? { ...t, ...data } : t)));
+      } else {
+        const { data } = await api.post('/tasks', { ...taskData, projectId: id });
+        setTasks((prev) => [...prev, data]);
+      }
+      setModalOpen(false);
+    } catch (err) {
+      console.error('Failed to save task', err);
     }
-    setModalOpen(false);
   }
+
+  if (loading) return <div className="loading-state">Loading project details...</div>;
+  if (!project) return <div className="error-state">Project not found</div>;
 
   const memberMap = Object.fromEntries(project.members.map((m) => [m.id, m]));
 

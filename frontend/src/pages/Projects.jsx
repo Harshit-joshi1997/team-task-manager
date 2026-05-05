@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 import './Projects.css';
-
 
 function ProjectCard({ project, onOpen }) {
   const total = project.tasks.todo + project.tasks.inProgress + project.tasks.done;
@@ -65,29 +65,45 @@ export default function Projects() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [nameError, setNameError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const { data } = await api.get('/projects');
+        setProjects(data);
+      } catch (err) {
+        console.error('Failed to load projects', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
 
   function handleOpen(id) {
     navigate(`/projects/${id}`);
   }
 
-  function handleCreate(e) {
+  async function handleCreate(e) {
     e.preventDefault();
     if (!newName.trim()) { setNameError('Project name is required'); return; }
 
-    const newProject = {
-      id: `p-${Date.now()}`,
-      name: newName.trim(),
-      description: newDesc.trim() || 'No description provided.',
-      members: 1,
-      tasks: { todo: 0, inProgress: 0, done: 0 },
-      createdAt: new Date().toISOString().split('T')[0],
-    };
+    try {
+      const { data } = await api.post('/projects', {
+        name: newName.trim(),
+        description: newDesc.trim(),
+      });
 
-    setProjects((prev) => [newProject, ...prev]);
-    setShowNew(false);
-    setNewName('');
-    setNewDesc('');
-    setNameError('');
+      setProjects((prev) => [data, ...prev]);
+      setShowNew(false);
+      setNewName('');
+      setNewDesc('');
+      setNameError('');
+    } catch (err) {
+      console.error('Failed to create project', err);
+      setNameError('Failed to create project');
+    }
   }
 
   return (
