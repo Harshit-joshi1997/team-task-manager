@@ -52,11 +52,17 @@ router.post('/tasks', auth, isAdmin, async (req, res) => {
   }
 
   try {
+    let parsedDate = null;
+    if (dueDate) {
+      const d = new Date(dueDate);
+      if (!isNaN(d.getTime())) parsedDate = d;
+    }
+
     const task = await Task.create({
       title,
       description,
       status: status || 'TODO',
-      dueDate: dueDate ? new Date(dueDate) : null,
+      dueDate: parsedDate,
       project: projectId,
       assignedTo: assignedTo || null,
       createdBy: userId,
@@ -85,6 +91,9 @@ router.put('/tasks/:id', auth, async (req, res) => {
   const userRole = req.user.role;
 
   try {
+    if (!id || id === 'undefined' || id === 'null') {
+      return res.status(400).json({ error: 'Valid Task ID is required' });
+    }
     const task = await Task.findById(id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
 
@@ -97,7 +106,12 @@ router.put('/tasks/:id', auth, async (req, res) => {
       task.description = description !== undefined ? description : task.description;
       task.status = status || task.status;
       if (dueDate !== undefined) {
-        task.dueDate = dueDate ? new Date(dueDate) : null;
+        if (!dueDate) {
+          task.dueDate = null;
+        } else {
+          const d = new Date(dueDate);
+          if (!isNaN(d.getTime())) task.dueDate = d;
+        }
       }
       task.assignedTo = assignedTo || task.assignedTo;
     } else {

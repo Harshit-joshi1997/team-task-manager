@@ -91,10 +91,14 @@ export default function ProjectDetail() {
   function openEdit(task) { setEditingTask(task); setModalOpen(true); }
 
   async function handleSave(taskData) {
+    const taskId = editingTask?.id || editingTask?._id;
     try {
-      if (editingTask) {
-        const { data } = await api.put(`/tasks/${editingTask.id}`, taskData);
-        setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? { ...t, ...data } : t)));
+      if (editingTask && taskId) {
+        const { data } = await api.put(`/tasks/${taskId}`, taskData);
+        setTasks((prev) => prev.map((t) => {
+          const tid = t.id || t._id;
+          return tid === taskId ? { ...t, ...data } : t;
+        }));
       } else {
         const { data } = await api.post('/tasks', { ...taskData, projectId: id });
         setTasks((prev) => [...prev, data]);
