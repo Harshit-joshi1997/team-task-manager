@@ -60,6 +60,8 @@ router.post('/tasks', auth, isAdmin, async (req, res) => {
       project: projectId,
       assignedTo: assignedTo || null,
       createdBy: userId,
+    });
+
     res.status(201).json({
       id: task._id,
       title: task.title,
