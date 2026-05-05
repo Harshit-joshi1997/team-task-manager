@@ -10,7 +10,7 @@ router.get('/projects', auth, async (req, res) => {
   const userId = req.user.id;
   const userRole = req.user.role;
   try {
-    // Admin sees ALL projects, Member sees only their memberships
+    // Admin sees ALL projects, Staff sees only their memberships
     const query = userRole === 'ADMIN' ? {} : { 'members.user': userId };
     
     const projects = await Project.find(query).sort({ createdAt: -1 });

@@ -117,7 +117,9 @@ export default function Layout() {
             <div className="sidebar__avatar">{initials}</div>
             <div className="sidebar__user-info">
               <p className="sidebar__user-name">{user?.name || 'User'}</p>
-              <p className="sidebar__user-role">{user?.role || 'Member'}</p>
+              <p className="sidebar__user-role">
+                {user?.role === 'ADMIN' ? 'Admin' : 'Staff'}
+              </p>
             </div>
             <svg
               className={`sidebar__chevron${menuOpen ? ' sidebar__chevron--open' : ''}`}
@@ -151,8 +153,6 @@ export default function Layout() {
           )}
         </div>
       </aside>
-
-
 
       <main className="layout__content">
         <Outlet />

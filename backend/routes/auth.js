@@ -20,7 +20,7 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password: hashed,
-      role: role || 'MEMBER',
+      role: role || 'STAFF',
       phone
     });
 
@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
     console.error(err);

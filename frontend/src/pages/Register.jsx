@@ -143,7 +143,7 @@ export default function Register() {
               >
                 <option value="">— Select role —</option>
                 <option value="ADMIN">Admin</option>
-                <option value="MEMBER">Member</option>
+                <option value="STAFF">Staff</option>
               </select>
               {errors.role && <p className="form-error">{errors.role}</p>}
             </div>

@@ -8,8 +8,8 @@ const ProjectMemberSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['ADMIN', 'MEMBER'],
-    default: 'MEMBER'
+    enum: ['ADMIN', 'STAFF'],
+    default: 'STAFF'
   }
 });
 

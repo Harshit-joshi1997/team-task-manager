@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskModal from '../components/TaskModal';
 import api from '../api/axios';
+import useAuthStore from '../store/useAuthStore';
 import './ProjectDetail.css';
 
 const COLUMNS = [
@@ -50,6 +51,8 @@ function TaskCard({ task, member, onClick }) {
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
   
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -109,12 +112,14 @@ export default function ProjectDetail() {
           <h1 className="page-title">{project.name}</h1>
           <p className="page-subtitle">{project.description}</p>
         </div>
-        <button className="btn btn--primary" id="add-task-btn" onClick={openCreate}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Add Task
-        </button>
+        {isAdmin && (
+          <button className="btn btn--primary" id="add-task-btn" onClick={openCreate}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Add Task
+          </button>
+        )}
       </header>
 
       {/* Members */}
@@ -147,12 +152,14 @@ export default function ProjectDetail() {
                     onClick={openEdit}
                   />
                 ))}
-                <button className="kanban__add-btn" onClick={openCreate}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Add task
-                </button>
+                {isAdmin && (
+                  <button className="kanban__add-btn" onClick={openCreate}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add task
+                  </button>
+                )}
               </div>
             </div>
           );

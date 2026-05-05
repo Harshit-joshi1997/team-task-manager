@@ -32,7 +32,7 @@ router.post('/users', auth, isAdmin, async (req, res) => {
       name,
       email,
       password: hashed,
-      role: role || 'MEMBER',
+      role: role || 'STAFF',
       phone
     });
 

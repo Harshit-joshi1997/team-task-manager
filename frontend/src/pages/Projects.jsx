@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import useAuthStore from '../store/useAuthStore';
 import './Projects.css';
 
 function ProjectCard({ project, onOpen }) {
@@ -60,6 +61,9 @@ function ProjectCard({ project, onOpen }) {
 
 export default function Projects() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+
   const [projects, setProjects] = useState([]);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
@@ -113,12 +117,14 @@ export default function Projects() {
           <h1 className="page-title">Projects</h1>
           <p className="page-subtitle">{projects.length} active projects</p>
         </div>
-        <button className="btn btn--primary" id="create-project-btn" onClick={() => setShowNew(true)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          New Project
-        </button>
+        {isAdmin && (
+          <button className="btn btn--primary" id="create-project-btn" onClick={() => setShowNew(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Project
+          </button>
+        )}
       </header>
 
       <div className="projects-grid">
