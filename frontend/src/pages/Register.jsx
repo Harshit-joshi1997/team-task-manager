@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 import './Auth.css';
-
-const MOCK_USERS_KEY = 'registered_users';
-
-function getRegisteredUsers() {
-  try { return JSON.parse(localStorage.getItem(MOCK_USERS_KEY)) || []; }
-  catch { return []; }
-}
 
 function validate(form) {
   const errors = {};
@@ -56,19 +50,22 @@ export default function Register() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
+    try {
+      await api.post('/register', {
+        name: form.fullName,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+        phone: form.phone,
+      });
 
-    const users = getRegisteredUsers();
-    if (users.find((u) => u.email === form.email)) {
-      setServerError('An account with this email already exists.');
+      navigate('/login', { state: { registered: true } });
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Registration failed.';
+      setServerError(msg);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    users.push({ fullName: form.fullName, email: form.email, role: form.role, phone: form.phone, password: form.password });
-    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
-
-    navigate('/login', { state: { registered: true } });
   }
 
   return (

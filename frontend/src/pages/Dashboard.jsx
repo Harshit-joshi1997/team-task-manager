@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import useAuthStore from '../store/useAuthStore';
+import api from '../api/axios';
 import './Dashboard.css';
 
 const STAT_DEFS = [
@@ -31,12 +33,67 @@ function EmptyPanel({ message }) {
   );
 }
 
+function OverdueRow({ task }) {
+  const days = Math.floor((Date.now() - new Date(task.dueDate)) / (1000 * 60 * 60 * 24));
+  return (
+    <div className="overdue-row">
+      <div className="overdue-row__info">
+        <span className="overdue-row__title">{task.title}</span>
+        <span className="overdue-row__project">{task.project?.name || 'No Project'}</span>
+      </div>
+      <div className="overdue-row__meta">
+        <span className="overdue-row__badge">{days}d overdue</span>
+        <span className="overdue-row__assignee">{task.assignedTo?.name}</span>
+      </div>
+    </div>
+  );
+}
+
+function ActivityItem({ task }) {
+  const isCreated = true; // Simplified for now
+  const action = 'created task';
+  const time = new Date(task.createdAt).toLocaleDateString();
+  const userInitials = task.createdBy?.name?.charAt(0) || 'U';
+
+  return (
+    <div className="activity-item">
+      <div className="activity-item__avatar">{userInitials}</div>
+      <div className="activity-item__body">
+        <p className="activity-item__text">
+          <span className="activity-item__user">{task.createdBy?.name}</span>{' '}
+          {action}{' '}
+          <span className="activity-item__target">"{task.title}"</span>
+        </p>
+        <p className="activity-item__time">{time}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.split(' ')[0] || 'there';
 
-  // Stats are all zero until backend is connected
-  const stats = { todo: 0, inProgress: 0, done: 0, overdue: 0 };
+  const [stats, setStats] = useState({ todo: 0, inProgress: 0, done: 0, overdue: 0 });
+  const [overdueTasks, setOverdueTasks] = useState([]);
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const { data } = await api.get('/dashboard');
+        setStats(data.stats);
+        setOverdueTasks(data.overdueTasks || []);
+        setRecentTasks(data.recentTasks || []);
+      } catch (err) {
+        console.error('Failed to load dashboard', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboard();
+  }, []);
 
   return (
     <div className="dashboard">
@@ -63,7 +120,11 @@ export default function Dashboard() {
             Overdue Tasks
           </h2>
           <div className="panel__body">
-            <EmptyPanel message="No overdue tasks — you're all caught up!" />
+            {overdueTasks.length === 0 ? (
+              <EmptyPanel message="No overdue tasks — you're all caught up!" />
+            ) : (
+              overdueTasks.map((t) => <OverdueRow key={t.id} task={t} />)
+            )}
           </div>
         </section>
 
@@ -74,7 +135,11 @@ export default function Dashboard() {
             Recent Activity
           </h2>
           <div className="panel__body">
-            <EmptyPanel message="No recent activity yet. Start by creating a project." />
+            {recentTasks.length === 0 ? (
+              <EmptyPanel message="No recent activity yet. Start by creating a project." />
+            ) : (
+              recentTasks.map((t) => <ActivityItem key={t.id} task={t} />)
+            )}
           </div>
         </section>
       </div>

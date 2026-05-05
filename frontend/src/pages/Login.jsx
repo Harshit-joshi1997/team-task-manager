@@ -1,17 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 import useAuthStore from '../store/useAuthStore';
 import './Auth.css';
-
-const MOCK_USERS_KEY = 'registered_users';
-
-function getRegisteredUsers() {
-  try {
-    return JSON.parse(localStorage.getItem(MOCK_USERS_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
 
 function validate(form) {
   const errors = {};
@@ -45,29 +36,24 @@ export default function Login() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
-    // Simulate API call — check against registered users in localStorage
-    await new Promise((r) => setTimeout(r, 600));
-
-    const users = getRegisteredUsers();
-    const found = users.find(
-      (u) => u.email === form.email && u.password === form.password
-    );
-
-    if (!found) {
-      setServerError('Invalid email or password.');
+    try {
+      const { data } = await api.post('/login', {
+        email: form.email,
+        password: form.password,
+      });
+      login(data.user, data.token);
+      navigate('/');
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Invalid email or password.';
+      setServerError(msg);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const fakeToken = btoa(`${found.email}:${Date.now()}`);
-    login({ name: found.fullName, email: found.email, role: found.role }, fakeToken);
-    navigate('/');
   }
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Brand */}
         <div className="auth-brand">
           <div className="auth-logo">
             <svg viewBox="0 0 32 32" fill="none">
@@ -75,8 +61,7 @@ export default function Login() {
               <path d="M8 16l5 5 11-11" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               <defs>
                 <linearGradient id="grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#6c63ff" />
-                  <stop offset="1" stopColor="#00e5cc" />
+                  <stop stopColor="#6c63ff" /><stop offset="1" stopColor="#00e5cc" />
                 </linearGradient>
               </defs>
             </svg>
@@ -99,38 +84,23 @@ export default function Login() {
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label className="form-label" htmlFor="login-email">Email address</label>
-            <input
-              id="login-email"
-              type="email"
+            <input id="login-email" type="email"
               className={`form-input${errors.email ? ' form-input--error' : ''}`}
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => set('email', e.target.value)}
-              autoComplete="email"
-            />
+              placeholder="you@example.com" value={form.email}
+              onChange={(e) => set('email', e.target.value)} autoComplete="email" />
             {errors.email && <p className="form-error">{errors.email}</p>}
           </div>
 
           <div className="form-group">
             <label className="form-label" htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              type="password"
+            <input id="login-password" type="password"
               className={`form-input${errors.password ? ' form-input--error' : ''}`}
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => set('password', e.target.value)}
-              autoComplete="current-password"
-            />
+              placeholder="••••••••" value={form.password}
+              onChange={(e) => set('password', e.target.value)} autoComplete="current-password" />
             {errors.password && <p className="form-error">{errors.password}</p>}
           </div>
 
-          <button
-            id="login-submit"
-            type="submit"
-            className="auth-btn"
-            disabled={loading}
-          >
+          <button id="login-submit" type="submit" className="auth-btn" disabled={loading}>
             {loading ? <span className="auth-spinner" /> : 'Sign In'}
           </button>
         </form>
