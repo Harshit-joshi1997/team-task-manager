@@ -130,7 +130,7 @@ export default function TaskModal({ task, members = [], onSave, onClose }) {
               <option value="">— Unassigned —</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name} ({m.role})
+                  {m.name} ({m.role === 'ADMIN' ? 'Admin' : 'Staff'})
                 </option>
               ))}
             </select>

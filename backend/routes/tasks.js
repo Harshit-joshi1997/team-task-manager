@@ -7,7 +7,7 @@ const { isAdmin } = require('../middleware/rbac');
 // POST /api/tasks - Only Admin can assign tasks
 router.post('/tasks', auth, isAdmin, async (req, res) => {
   const userId = req.user.id;
-  const { title, description, status, dueDate, projectId, assignedToId } = req.body;
+  const { title, description, status, dueDate, projectId, assignedTo } = req.body;
 
   if (!title || !projectId) {
     return res.status(400).json({ error: 'Title and projectId are required' });
@@ -20,7 +20,7 @@ router.post('/tasks', auth, isAdmin, async (req, res) => {
       status: status || 'TODO',
       dueDate: dueDate ? new Date(dueDate) : null,
       project: projectId,
-      assignedTo: assignedToId || null,
+      assignedTo: assignedTo || null,
       createdBy: userId,
     });
     
@@ -34,7 +34,7 @@ router.post('/tasks', auth, isAdmin, async (req, res) => {
 // PUT /api/tasks/:id
 router.put('/tasks/:id', auth, async (req, res) => {
   const { id } = req.params;
-  const { title, description, status, dueDate, assignedToId } = req.body;
+  const { title, description, status, dueDate, assignedTo } = req.body;
   const userRole = req.user.role;
 
   try {
@@ -50,10 +50,10 @@ router.put('/tasks/:id', auth, async (req, res) => {
       task.description = description !== undefined ? description : task.description;
       task.status = status || task.status;
       task.dueDate = dueDate ? new Date(dueDate) : task.dueDate;
-      task.assignedTo = assignedToId || task.assignedTo;
+      task.assignedTo = assignedTo || task.assignedTo;
     } else {
       // Member can only update status
-      if (title || description || dueDate || assignedToId) {
+      if (title || description || dueDate || assignedTo) {
         return res.status(403).json({ error: 'Members can only update task status' });
       }
       task.status = status || task.status;

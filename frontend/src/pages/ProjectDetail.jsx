@@ -56,6 +56,7 @@ export default function ProjectDetail() {
   
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -66,8 +67,19 @@ export default function ProjectDetail() {
         const { data } = await api.get(`/projects/${id}`);
         setProject(data);
         setTasks(data.tasks);
+
+        // Fetch all users for assignment if Admin
+        if (isAdmin) {
+          const { data: userData } = await api.get('/users');
+          setAllUsers(userData.map(u => ({
+            id: u._id,
+            name: u.name,
+            role: u.role,
+            avatar: u.name.charAt(0).toUpperCase()
+          })));
+        }
       } catch (err) {
-        console.error('Failed to load project', err);
+        console.error('Failed to load project details', err);
       } finally {
         setLoading(false);
       }
@@ -169,7 +181,7 @@ export default function ProjectDetail() {
       {modalOpen && (
         <TaskModal
           task={editingTask}
-          members={project.members}
+          members={isAdmin ? allUsers : project.members}
           onSave={handleSave}
           onClose={() => setModalOpen(false)}
         />
