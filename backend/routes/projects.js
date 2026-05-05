@@ -3,14 +3,17 @@ const router = express.Router();
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const auth = require('../middleware/auth');
+const { isAdmin } = require('../middleware/rbac');
 
-// GET /api/projects - list projects user is a member of
+// GET /api/projects - list projects
 router.get('/projects', auth, async (req, res) => {
   const userId = req.user.id;
+  const userRole = req.user.role;
   try {
-    const projects = await Project.find({
-      'members.user': userId
-    }).sort({ createdAt: -1 });
+    // Admin sees ALL projects, Member sees only their memberships
+    const query = userRole === 'ADMIN' ? {} : { 'members.user': userId };
+    
+    const projects = await Project.find(query).sort({ createdAt: -1 });
 
     const formatted = await Promise.all(projects.map(async (p) => {
       const tasks = await Task.find({ project: p._id });
@@ -39,8 +42,8 @@ router.get('/projects', auth, async (req, res) => {
   }
 });
 
-// POST /api/projects - create new project
-router.post('/projects', auth, async (req, res) => {
+// POST /api/projects - Only Admin can create projects
+router.post('/projects', auth, isAdmin, async (req, res) => {
   const userId = req.user.id;
   const { name, description } = req.body;
   
@@ -73,13 +76,12 @@ router.post('/projects', auth, async (req, res) => {
 // GET /api/projects/:id - get project details
 router.get('/projects/:id', auth, async (req, res) => {
   const userId = req.user.id;
+  const userRole = req.user.role;
   const { id } = req.params;
 
   try {
-    const project = await Project.findOne({
-      _id: id,
-      'members.user': userId
-    }).populate('members.user', 'name');
+    const query = userRole === 'ADMIN' ? { _id: id } : { _id: id, 'members.user': userId };
+    const project = await Project.findOne(query).populate('members.user', 'name');
 
     if (!project) return res.status(404).json({ error: 'Project not found' });
 

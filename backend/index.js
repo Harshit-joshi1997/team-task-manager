@@ -6,6 +6,7 @@ const authRoutes      = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const projectRoutes   = require('./routes/projects');
 const taskRoutes      = require('./routes/tasks');
+const userRoutes      = require('./routes/users');
 const connectDB       = require('./lib/db');
 
 const app = express();
@@ -23,5 +24,6 @@ app.use('/api', authRoutes);
 app.use('/api', dashboardRoutes);
 app.use('/api', projectRoutes);
 app.use('/api', taskRoutes);
+app.use('/api', userRoutes);
 
 app.listen(3000, () => console.log('Server running on port 3000'));
