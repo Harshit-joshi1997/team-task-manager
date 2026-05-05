@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Projects.css';
 
 /* ── Mock Data ── */
@@ -65,20 +66,35 @@ function ProjectCard({ project, onOpen }) {
 }
 
 export default function Projects() {
-  const [projects] = useState(MOCK_PROJECTS);
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState(MOCK_PROJECTS);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [nameError, setNameError] = useState('');
 
   function handleOpen(id) {
-    window.location.href = `/projects/${id}`;
+    navigate(`/projects/${id}`);
   }
 
   function handleCreate(e) {
     e.preventDefault();
+    if (!newName.trim()) { setNameError('Project name is required'); return; }
+
+    const newProject = {
+      id: `p-${Date.now()}`,
+      name: newName.trim(),
+      description: newDesc.trim() || 'No description provided.',
+      members: 1,
+      tasks: { todo: 0, inProgress: 0, done: 0 },
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setProjects((prev) => [newProject, ...prev]);
     setShowNew(false);
     setNewName('');
     setNewDesc('');
+    setNameError('');
   }
 
   return (
@@ -112,16 +128,17 @@ export default function Projects() {
             </div>
             <form className="modal__body" onSubmit={handleCreate}>
               <div className="form-group">
-                <label className="form-label">Project Name</label>
+                <label className="form-label">Project Name *</label>
                 <input
                   id="new-project-name"
-                  className="form-input"
+                  className={`form-input${nameError ? ' form-input--error' : ''}`}
                   placeholder="e.g. Backend API"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onChange={(e) => { setNewName(e.target.value); setNameError(''); }}
                   required
                   autoFocus
                 />
+                {nameError && <p className="form-error">{nameError}</p>}
               </div>
               <div className="form-group">
                 <label className="form-label">Description</label>
