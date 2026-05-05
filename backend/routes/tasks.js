@@ -87,7 +87,9 @@ router.put('/tasks/:id', auth, async (req, res) => {
       task.title = title || task.title;
       task.description = description !== undefined ? description : task.description;
       task.status = status || task.status;
-      task.dueDate = dueDate ? new Date(dueDate) : task.dueDate;
+      if (dueDate !== undefined) {
+        task.dueDate = dueDate ? new Date(dueDate) : null;
+      }
       task.assignedTo = assignedTo || task.assignedTo;
     } else {
       // Member can only update status

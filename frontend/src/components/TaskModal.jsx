@@ -23,7 +23,7 @@ export default function TaskModal({ task, members = [], onSave, onClose }) {
       setForm({
         title:       task.title       || '',
         description: task.description || '',
-        dueDate:     task.dueDate     || '',
+        dueDate:     task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
         assignedTo:  task.assignedTo  || '',
         status:      task.status      || 'TODO',
       });
