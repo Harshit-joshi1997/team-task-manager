@@ -4,6 +4,44 @@ const Task = require('../models/Task');
 const auth = require('../middleware/auth');
 const { isAdmin } = require('../middleware/rbac');
 
+// GET /api/tasks - list tasks with filters
+router.get('/tasks', auth, async (req, res) => {
+  const userId = req.user.id;
+  const userRole = req.user.role;
+  const { status, overdue } = req.query;
+
+  try {
+    let query = userRole === 'ADMIN' ? {} : { assignedTo: userId };
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (overdue === 'true') {
+      query.dueDate = { $lt: new Date() };
+      query.status = { $ne: 'DONE' };
+    }
+
+    const tasks = await Task.find(query)
+      .populate('project', 'name')
+      .populate('assignedTo', 'name')
+      .sort({ dueDate: 1, createdAt: -1 });
+
+    res.json(tasks.map(t => ({
+      id: t._id,
+      title: t.title,
+      description: t.description,
+      status: t.status,
+      dueDate: t.dueDate,
+      project: t.project,
+      assignedTo: t.assignedTo
+    })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
 // POST /api/tasks - Only Admin can assign tasks
 router.post('/tasks', auth, isAdmin, async (req, res) => {
   const userId = req.user.id;

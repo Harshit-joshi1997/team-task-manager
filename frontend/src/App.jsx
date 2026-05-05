@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import TasksView from './pages/TasksView';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import useAuthStore from './store/useAuthStore';
@@ -40,6 +41,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:id" element={<ProjectDetail />} />
+          <Route path="tasks" element={<TasksView />} />
         </Route>
 
         {/* Fallback */}

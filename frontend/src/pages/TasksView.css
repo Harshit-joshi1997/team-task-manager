@@ -1,0 +1,114 @@
+.tasks-view {
+  padding: var(--space-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tasks-view__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--transition);
+  margin-bottom: var(--space-sm);
+}
+
+.back-btn:hover {
+  color: var(--accent-light);
+}
+
+.tasks-list {
+  margin-top: var(--space-xl);
+}
+
+.tasks-table-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.tasks-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tasks-table th {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.tasks-table td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.tasks-table tr {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.tasks-table tr:hover {
+  background: var(--bg-hover);
+}
+
+.tasks-table tr:last-child td {
+  border-bottom: none;
+}
+
+.task-title-cell {
+  font-weight: 600;
+}
+
+.project-name-cell {
+  color: var(--text-secondary);
+}
+
+.deadline-cell.overdue {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.status-tag {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-tag--todo { background: var(--teal-dim); color: var(--teal); }
+.status-tag--in_progress { background: var(--orange-dim); color: var(--orange); }
+.status-tag--done { background: var(--green-dim); color: var(--green); }
+
+.empty-state, .loading-state {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+}

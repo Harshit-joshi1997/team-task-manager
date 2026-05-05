@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 import api from '../api/axios';
 import './Dashboard.css';
@@ -10,9 +11,9 @@ const STAT_DEFS = [
   { label: 'Overdue',     key: 'overdue',     color: 'var(--red)',    bg: 'var(--red-dim)'    },
 ];
 
-function StatCard({ label, value, color, bg }) {
+function StatCard({ label, value, color, bg, onClick }) {
   return (
-    <div className="stat-card" style={{ '--card-accent': color, '--card-bg': bg }}>
+    <div className="stat-card" style={{ '--card-accent': color, '--card-bg': bg }} onClick={onClick}>
       <div className="stat-card__icon" style={{ background: bg }}>
         <div className="stat-card__dot" style={{ background: color }} />
       </div>
@@ -71,6 +72,7 @@ function ActivityItem({ task }) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.split(' ')[0] || 'there';
 
@@ -107,7 +109,25 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <section className="dashboard__stats">
         {STAT_DEFS.map((s) => (
-          <StatCard key={s.key} label={s.label} value={stats[s.key]} color={s.color} bg={s.bg} />
+          <StatCard 
+            key={s.key} 
+            label={s.label} 
+            value={stats[s.key]} 
+            color={s.color} 
+            bg={s.bg} 
+            onClick={() => {
+              if (s.key === 'overdue') {
+                navigate('/tasks?overdue=true');
+              } else {
+                const statusMap = {
+                  todo: 'TODO',
+                  inProgress: 'IN_PROGRESS',
+                  done: 'DONE'
+                };
+                navigate(`/tasks?status=${statusMap[s.key]}`);
+              }
+            }}
+          />
         ))}
       </section>
 
