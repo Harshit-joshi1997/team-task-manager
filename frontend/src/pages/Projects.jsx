@@ -2,13 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Projects.css';
 
-/* ── Mock Data ── */
-const MOCK_PROJECTS = [
-  { id: '1', name: 'Backend API', description: 'Node/Express REST API with auth, Prisma ORM.', members: 4, tasks: { todo: 5, inProgress: 3, done: 8 }, createdAt: '2026-04-10' },
-  { id: '2', name: 'Frontend App', description: 'React + Vite SPA — Kanban, dashboard, task management.', members: 3, tasks: { todo: 7, inProgress: 2, done: 5 }, createdAt: '2026-04-15' },
-  { id: '3', name: 'Mobile App', description: 'React Native cross-platform mobile application.', members: 2, tasks: { todo: 3, inProgress: 1, done: 2 }, createdAt: '2026-04-20' },
-  { id: '4', name: 'DevOps Pipeline', description: 'CI/CD setup with Docker, GitHub Actions, deployments.', members: 2, tasks: { todo: 4, inProgress: 2, done: 6 }, createdAt: '2026-04-22' },
-];
 
 function ProjectCard({ project, onOpen }) {
   const total = project.tasks.todo + project.tasks.inProgress + project.tasks.done;
@@ -67,7 +60,7 @@ function ProjectCard({ project, onOpen }) {
 
 export default function Projects() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState(MOCK_PROJECTS);
+  const [projects, setProjects] = useState([]);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -113,9 +106,28 @@ export default function Projects() {
       </header>
 
       <div className="projects-grid">
-        {projects.map((p) => (
-          <ProjectCard key={p.id} project={p} onOpen={handleOpen} />
-        ))}
+        {projects.length === 0 ? (
+          <div className="projects-empty">
+            <div className="projects-empty__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+            </div>
+            <h3 className="projects-empty__title">No projects yet</h3>
+            <p className="projects-empty__subtitle">Create your first project to start managing tasks with your team.</p>
+            <button className="btn btn--primary" onClick={() => setShowNew(true)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Create First Project
+            </button>
+          </div>
+        ) : (
+          projects.map((p) => (
+            <ProjectCard key={p.id} project={p} onOpen={handleOpen} />
+          ))
+        )}
       </div>
 
       {/* New Project Modal */}

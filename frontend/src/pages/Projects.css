@@ -8,6 +8,47 @@
   padding: 0 var(--space-xl);
 }
 
+/* ── Empty State ── */
+.projects-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl) var(--space-xl);
+  text-align: center;
+}
+
+.projects-empty__icon {
+  width: 72px;
+  height: 72px;
+  background: var(--accent-dim);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-light);
+}
+
+.projects-empty__icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.projects-empty__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.projects-empty__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  max-width: 380px;
+  line-height: 1.6;
+}
+
 /* ── Project Card ── */
 .project-card {
   background: var(--bg-surface);

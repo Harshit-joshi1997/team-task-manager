@@ -73,6 +73,15 @@
   color: var(--accent-light);
 }
 
+/* Theme toggle uses same link style but with a separator above */
+.sidebar__theme-toggle {
+  margin-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+  padding-top: calc(var(--space-sm) + 10px);
+  width: 100%;
+  text-align: left;
+}
+
 .sidebar__link-icon {
   width: 18px;
   height: 18px;
