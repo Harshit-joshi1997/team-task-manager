@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const prisma = require('../lib/prisma');
+const Task = require('../models/Task');
 const auth = require('../middleware/auth');
 
 // GET /api/dashboard
@@ -11,41 +11,43 @@ router.get('/dashboard', auth, async (req, res) => {
 
     const [total, todo, inProgress, done, overdueCount, overdueTasks, recentTasks] =
       await Promise.all([
-        prisma.task.count({ where: { assignedToId: userId } }),
-        prisma.task.count({ where: { assignedToId: userId, status: 'TODO' } }),
-        prisma.task.count({ where: { assignedToId: userId, status: 'IN_PROGRESS' } }),
-        prisma.task.count({ where: { assignedToId: userId, status: 'DONE' } }),
-        prisma.task.count({
-          where: { assignedToId: userId, dueDate: { lt: now }, status: { not: 'DONE' } },
-        }),
+        Task.countDocuments({ assignedTo: userId }),
+        Task.countDocuments({ assignedTo: userId, status: 'TODO' }),
+        Task.countDocuments({ assignedTo: userId, status: 'IN_PROGRESS' }),
+        Task.countDocuments({ assignedTo: userId, status: 'DONE' }),
+        Task.countDocuments({ assignedTo: userId, dueDate: { $lt: now }, status: { $ne: 'DONE' } }),
         // Overdue task list (max 5)
-        prisma.task.findMany({
-          where: { assignedToId: userId, dueDate: { lt: now }, status: { not: 'DONE' } },
-          orderBy: { dueDate: 'asc' },
-          take: 5,
-          include: {
-            project: { select: { name: true } },
-            assignedTo: { select: { name: true } },
-          },
-        }),
+        Task.find({ assignedTo: userId, dueDate: { $lt: now }, status: { $ne: 'DONE' } })
+          .sort({ dueDate: 1 })
+          .limit(5)
+          .populate('project', 'name')
+          .populate('assignedTo', 'name'),
         // Recent tasks created by or assigned to this user (max 5)
-        prisma.task.findMany({
-          where: {
-            OR: [{ createdById: userId }, { assignedToId: userId }],
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: {
-            createdBy: { select: { name: true } },
-            project: { select: { name: true } },
-          },
-        }),
+        Task.find({
+          $or: [{ createdBy: userId }, { assignedTo: userId }],
+        })
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .populate('createdBy', 'name')
+          .populate('project', 'name'),
       ]);
 
     res.json({
       stats: { total, todo, inProgress, done, overdue: overdueCount },
-      overdueTasks,
-      recentTasks,
+      overdueTasks: overdueTasks.map(t => ({
+        id: t._id,
+        title: t.title,
+        dueDate: t.dueDate,
+        project: t.project,
+        assignedTo: t.assignedTo
+      })),
+      recentTasks: recentTasks.map(t => ({
+        id: t._id,
+        title: t.title,
+        createdAt: t.createdAt,
+        createdBy: t.createdBy,
+        project: t.project
+      })),
     });
   } catch (err) {
     console.error(err);

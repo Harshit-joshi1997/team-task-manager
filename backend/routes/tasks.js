@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const prisma = require('../lib/prisma');
+const Task = require('../models/Task');
 const auth = require('../middleware/auth');
 
 // POST /api/tasks
@@ -13,18 +13,27 @@ router.post('/tasks', auth, async (req, res) => {
   }
 
   try {
-    const task = await prisma.task.create({
-      data: {
-        title,
-        description,
-        status: status || 'TODO',
-        dueDate: dueDate ? new Date(dueDate) : null,
-        projectId,
-        assignedToId,
-        createdById: userId,
-      },
+    const task = await Task.create({
+      title,
+      description,
+      status: status || 'TODO',
+      dueDate: dueDate ? new Date(dueDate) : null,
+      project: projectId,
+      assignedTo: assignedToId || null,
+      createdBy: userId,
     });
-    res.status(201).json(task);
+    
+    const formatted = {
+      id: task._id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: task.dueDate,
+      assignedTo: task.assignedTo,
+      createdAt: task.createdAt
+    };
+
+    res.status(201).json(formatted);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create task' });
@@ -37,17 +46,31 @@ router.put('/tasks/:id', auth, async (req, res) => {
   const { title, description, status, dueDate, assignedToId } = req.body;
 
   try {
-    const task = await prisma.task.update({
-      where: { id },
-      data: {
+    const task = await Task.findByIdAndUpdate(
+      id,
+      {
         title,
         description,
         status,
         dueDate: dueDate ? new Date(dueDate) : null,
-        assignedToId,
+        assignedTo: assignedToId || null,
       },
-    });
-    res.json(task);
+      { new: true }
+    );
+
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const formatted = {
+      id: task._id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: task.dueDate,
+      assignedTo: task.assignedTo,
+      createdAt: task.createdAt
+    };
+
+    res.json(formatted);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update task' });

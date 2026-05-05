@@ -1,45 +1,36 @@
 const express = require('express');
 const router = express.Router();
-const prisma = require('../lib/prisma');
+const Project = require('../models/Project');
+const Task = require('../models/Task');
 const auth = require('../middleware/auth');
 
 // GET /api/projects - list projects user is a member of
 router.get('/projects', auth, async (req, res) => {
   const userId = req.user.id;
   try {
-    const projects = await prisma.project.findMany({
-      where: {
-        members: {
-          some: { userId },
-        },
-      },
-      include: {
-        _count: {
-          select: { members: true },
-        },
-        tasks: {
-          select: { status: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const projects = await Project.find({
+      'members.user': userId
+    }).sort({ createdAt: -1 });
 
-    const formatted = projects.map((p) => {
+    const formatted = await Promise.all(projects.map(async (p) => {
+      const tasks = await Task.find({ project: p._id });
+      
       let todo = 0, inProgress = 0, done = 0;
-      for (const t of p.tasks) {
+      for (const t of tasks) {
         if (t.status === 'TODO') todo++;
         if (t.status === 'IN_PROGRESS') inProgress++;
         if (t.status === 'DONE') done++;
       }
+
       return {
-        id: p.id,
+        id: p._id,
         name: p.name,
         description: p.description,
         createdAt: p.createdAt,
-        members: p._count.members,
+        members: p.members.length,
         tasks: { todo, inProgress, done },
       };
-    });
+    }));
 
     res.json(formatted);
   } catch (err) {
@@ -56,28 +47,21 @@ router.post('/projects', auth, async (req, res) => {
   if (!name) return res.status(400).json({ error: 'Project name is required' });
 
   try {
-    const project = await prisma.project.create({
-      data: {
-        name,
-        description,
-        members: {
-          create: {
-            userId,
-            role: 'ADMIN', // creator is admin
-          },
-        },
-      },
-      include: {
-        _count: { select: { members: true } },
-      },
+    const project = await Project.create({
+      name,
+      description,
+      members: [{
+        user: userId,
+        role: 'ADMIN'
+      }]
     });
 
     res.status(201).json({
-      id: project.id,
+      id: project._id,
       name: project.name,
       description: project.description,
       createdAt: project.createdAt,
-      members: project._count.members,
+      members: project.members.length,
       tasks: { todo: 0, inProgress: 0, done: 0 },
     });
   } catch (err) {
@@ -92,35 +76,34 @@ router.get('/projects/:id', auth, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const project = await prisma.project.findFirst({
-      where: {
-        id,
-        members: { some: { userId } },
-      },
-      include: {
-        members: {
-          include: {
-            user: { select: { id: true, name: true } },
-          },
-        },
-        tasks: true,
-      },
-    });
+    const project = await Project.findOne({
+      _id: id,
+      'members.user': userId
+    }).populate('members.user', 'name');
 
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
-    // Format members and tasks
+    const tasks = await Task.find({ project: id }).populate('assignedTo', 'name');
+
     const formatted = {
-      ...project,
+      id: project._id,
+      name: project.name,
+      description: project.description,
+      createdAt: project.createdAt,
       members: project.members.map((m) => ({
-        id: m.user.id,
+        id: m.user._id,
         name: m.user.name,
         role: m.role,
         avatar: m.user.name.charAt(0).toUpperCase(),
       })),
-      tasks: project.tasks.map((t) => ({
-        ...t,
-        assignedTo: t.assignedToId,
+      tasks: tasks.map((t) => ({
+        id: t._id,
+        title: t.title,
+        description: t.description,
+        status: t.status,
+        dueDate: t.dueDate,
+        assignedTo: t.assignedTo ? t.assignedTo._id : null,
+        createdAt: t.createdAt
       })),
     };
 

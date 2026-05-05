@@ -61,7 +61,7 @@ export default function Register() {
 
       navigate('/login', { state: { registered: true } });
     } catch (err) {
-      const msg = err.response?.data?.error || 'Registration failed.';
+      const msg = err.response?.data?.details || err.response?.data?.error || 'Registration failed.';
       setServerError(msg);
     } finally {
       setLoading(false);

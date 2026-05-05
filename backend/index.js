@@ -6,8 +6,13 @@ const authRoutes      = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const projectRoutes   = require('./routes/projects');
 const taskRoutes      = require('./routes/tasks');
+const connectDB       = require('./lib/db');
 
 const app = express();
+
+// Connect to Database
+connectDB();
+
 app.use(cors());
 app.use(express.json());
 
